@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lerntechniken</title>
+<style>
+:root{--bg:#1e1533;--panel:#271c44;--line:#7d6ab0;--lav:#cbbcf0;--txt:#e8e1f7;--mut:#a597cc;color-scheme:dark;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+header{max-width:680px;margin:0 auto;padding:28px 18px 0}
+h1{margin:0;font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:1.7rem;color:var(--lav)}
+header p{margin:4px 0 0;color:var(--mut);font-size:.95rem}
+main{max-width:680px;margin:0 auto;padding:10px 14px 50px}
+.map{position:relative;width:100%;aspect-ratio:100/125;max-height:720px}
+svg{position:absolute;inset:0;width:100%;height:100%}
+svg line{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.7}
+svg line.on{stroke:var(--lav);stroke-width:2;opacity:1}
+.node{position:absolute;transform:translate(-50%,-50%);width:clamp(78px,25%,120px);min-height:44px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--txt);font:inherit;font-size:clamp(.72rem,3vw,.9rem);cursor:pointer;line-height:1.2}
+.node:hover{border-color:var(--lav)}
+.node:focus-visible{outline:2px solid var(--lav);outline-offset:3px}
+.node.on{background:var(--lav);color:var(--bg);border-color:var(--lav)}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:Georgia,serif;font-size:clamp(1rem,4.5vw,1.4rem);color:var(--lav);text-align:center;background:var(--bg);padding:8px 10px}
+#panel{border-top:1px solid var(--line);margin-top:10px;padding-top:18px}
+#panel h2{margin:0 0 2px;font-family:Georgia,serif;font-weight:normal;font-size:1.5rem;color:var(--lav)}
+.sub{color:var(--mut);margin:0 0 12px}
+#panel h3{margin:16px 0 4px;font-size:.95rem;font-weight:600;color:var(--lav)}
+#panel p{margin:4px 0}
+#panel ol{margin:4px 0;padding-left:22px}
+.tool{margin-top:22px;padding:16px;background:var(--panel);border-radius:8px}
+.tool h3{margin-top:0!important}
+.tm{font-family:Georgia,serif;font-size:3rem;color:var(--lav);text-align:center}
+.tool .sub{text-align:center}
+#qin{width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--txt);font:inherit;margin-bottom:10px}
+#qin:focus-visible{outline:2px solid var(--lav);outline-offset:2px}
+.btn{background:var(--lav);color:var(--bg);border:1px solid var(--lav);border-radius:6px;padding:9px 18px;font:inherit;cursor:pointer;margin:2px 6px 2px 0}
+.btn.alt{background:transparent;color:var(--lav)}
+.btn:focus-visible{outline:2px solid var(--txt);outline-offset:2px}
+#qout li{margin:8px 0}
+.note{font-size:.85rem;color:var(--mut);margin:10px 0 0}
+.hint{color:var(--mut);margin:0}
+</style>
+</head>
+<body>
+<header>
+<h1>Lerntechniken</h1>
+<p>Wähle eine Technik und lies, wie sie funktioniert.</p>
+</header>
+<main>
+<div class="map" id="map">
+<svg viewBox="0 0 100 125" preserveAspectRatio="none" id="lines" aria-hidden="true"></svg>
+<div class="center">Besser<br>lernen</div>
+</div>
+<section id="panel" aria-live="polite"><p class="hint">Noch nichts ausgewählt.</p></section>
+</main>
+
+<script>
+var M=[
+{n:"Pomodoro",s:"Lernen in kurzen Sprints",w:"Du lernst 25 Minuten am Stück ohne Handy und machst dann 5 Minuten Pause. Nach vier Runden gibt es eine längere Pause von 15 bis 30 Minuten.",h:["Timer auf 25 Minuten stellen und eine Aufgabe festlegen.","Nur diese eine Aufgabe bearbeiten, Handy außer Reichweite.","Beim Klingeln aufstehen, trinken, strecken.","Nach vier Runden eine längere Pause machen."],g:"Lange Lerntage, Hausaufgaben und alles, wobei man gern abgelenkt wird."},
+{n:"Active Recall",s:"Aus dem Kopf abrufen",w:"Statt nur zu lesen, klappst du die Unterlagen zu und holst den Stoff aus dem Gedächtnis. Gerade die Anstrengung sorgt für den Lerneffekt.",h:["Thema einmal lesen.","Unterlagen zuklappen.","Aufschreiben, zeichnen oder erklären, was du noch weißt.","Mit den Unterlagen vergleichen und Lücken markieren."],g:"Fast alles: Abläufe, Definitionen, Zusammenhänge, Formeln."},
+{n:"Spaced Repetition",s:"Wiederholen mit Abstand",w:"Du wiederholst den Stoff in wachsenden Abständen, zum Beispiel nach 1, 3 und 7 Tagen. So bleibt er langfristig im Gedächtnis.",h:["Nach dem Lernen Wiederholungstermine eintragen.","Beim Termin zuerst abrufen, dann prüfen.","Was sitzt, wird später wiederholt. Was fehlt, kommt früher dran."],g:"Vokabeln, Fachbegriffe und alles, was lange behalten werden soll."},
+{n:"Feynman-Methode",s:"Erklären wie einer Anfängerin",w:"Du erklärst ein Thema in einfachen Worten, so als wüsste dein Gegenüber nichts. Wo du ins Stocken gerätst, fehlt noch Verständnis.",h:["Thema auf ein Blatt schreiben.","Laut und einfach erklären, ohne Spickzettel.","Beim Hängenbleiben nachlesen und noch einmal erklären.","Fachbegriffe durch eigene Worte ersetzen."],g:"Themen, die man verstehen muss, nicht nur auswendig lernen kann."},
+{n:"Karteikarten",s:"Leitner-System mit Boxen",w:"Vorderseite Frage, Rückseite Antwort. Richtig beantwortete Karten wandern in die nächste Box und kommen seltener dran, falsche zurück in Box 1.",h:["Karten schreiben, eine Frage pro Karte.","Drei Boxen: täglich, alle zwei Tage, einmal pro Woche.","Richtig: eine Box weiter. Falsch: zurück zu Box 1."],g:"Vokabeln, Begriffe, Daten, Definitionen."},
+{n:"Mindmap",s:"Zusammenhänge sichtbar machen",w:"Das Thema steht in der Mitte, Äste zeigen Unterthemen. Farben und kleine Zeichnungen helfen beim Merken.",h:["Thema in die Mitte schreiben.","Für jeden Hauptast eine eigene Farbe wählen.","Nur Stichworte verwenden.","Verbindungen zwischen den Ästen einzeichnen."],g:"Themen mit vielen Teilbereichen und Zusammenhängen."},
+{n:"Loci-Methode",s:"Gedächtnispalast",w:"Du verknüpfst Begriffe mit festen Orten, zum Beispiel in deiner Wohnung, und gehst diesen Weg in Gedanken ab.",h:["Einen bekannten Weg wählen, etwa Haustür, Flur, Küche.","Jeden Begriff als auffälliges Bild an einen Ort stellen.","Den Weg in Gedanken gehen und die Begriffe abrufen."],g:"Reihenfolgen, Listen und Stationen, bei denen die Ordnung wichtig ist."},
+{n:"Eselsbrücken",s:"Merksätze und Reime",w:"Aus den Anfangsbuchstaben der Begriffe baust du einen Satz oder Reim, der leicht im Kopf bleibt.",h:["Begriffe in der richtigen Reihenfolge aufschreiben.","Die Anfangsbuchstaben herausschreiben.","Einen Satz daraus bauen. Je skurriler, desto besser."],g:"Reihenfolgen und feste Aufzählungen."},
+{n:"Blurting",s:"Alles aufschreiben",w:"Du schreibst fünf Minuten lang alles auf, was du zu einem Thema weißt. Danach ergänzt du Lücken mit einer anderen Farbe.",h:["Leeres Blatt, Timer auf 5 Minuten.","Alles aufschreiben, auch Halbwissen.","Unterlagen daneben legen und mit anderer Farbe ergänzen.","Ein paar Tage später wiederholen."],g:"Zur Wiederholung kurz vor einer Prüfung."},
+{n:"Interleaving",s:"Themen mischen",w:"Statt ein Thema stundenlang zu üben, wechselst du zwischen mehreren. Das fühlt sich schwerer an, bringt aber langfristig mehr.",h:["Zwei bis drei Themen auswählen.","Nach 15 bis 20 Minuten das Thema wechseln.","Am Ende überlegen, wie die Themen zusammenhängen."],g:"Fächer mit mehreren Themen oder Aufgabentypen, etwa Mathe."}
+];
+var map=document.getElementById("map"),lines=document.getElementById("lines"),panel=document.getElementById("panel");
+var NS="http://www.w3.org/2000/svg",nodes=[],ls=[];
+M.forEach(function(m,i){
+ var a=(i*36-90)*Math.PI/180,x=50+37*Math.cos(a),y=62.5+44*Math.sin(a);
+ var l=document.createElementNS(NS,"line");
+ l.setAttribute("x1",50);l.setAttribute("y1",62.5);l.setAttribute("x2",x);l.setAttribute("y2",y);
+ lines.appendChild(l);ls.push(l);
+ var b=document.createElement("button");
+ b.className="node";b.type="button";b.textContent=m.n;
+ b.style.left=x+"%";b.style.top=(y/125*100)+"%";
+ b.addEventListener("click",function(){show(i)});
+ map.appendChild(b);nodes.push(b);
+});
+function show(i){
+ var m=M[i];
+ nodes.forEach(function(n,k){n.classList.toggle("on",k===i);ls[k].classList.toggle("on",k===i)});
+ panel.innerHTML="<h2>"+m.n+"</h2><p class='sub'>"+m.s+"</p><h3>Was ist das?</h3><p>"+m.w+"</p><h3>So geht’s</h3><ol>"+m.h.map(function(s){return "<li>"+s+"</li>"}).join("")+"</ol><h3>Gut geeignet für</h3><p>"+m.g+"</p>"+toolHtml(i);bindTool(i);
+ panel.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"nearest"});
+}
+var T={mode:"work",left:1500,run:false,rounds:0,id:null};
+function fmt(s){return ("0"+Math.floor(s/60)).slice(-2)+":"+("0"+s%60).slice(-2)}
+function tdraw(){var d=document.getElementById("tm");if(!d)return;d.textContent=fmt(T.left);
+ document.getElementById("tl").textContent=(T.mode==="work"?"Fokuszeit":"Pause")+", abgeschlossene Runden: "+T.rounds;
+ document.getElementById("tgo").textContent=T.run?"Pause":"Start"}
+function ttick(){T.left--;
+ if(T.left<=0){if(T.mode==="work"){T.rounds++;T.mode="break";T.left=T.rounds%4===0?900:300}else{T.mode="work";T.left=1500}
+ if(navigator.vibrate)navigator.vibrate(400)}
+ tdraw()}
+var Q={
+1:["Schreibe aus dem Kopf alles auf, was du über {t} weißt.","Nenne die drei wichtigsten Begriffe zu {t}.","Welche Beispiele kennst du zu {t}?","Wie hängt {t} mit einem anderen Thema zusammen?","Was ist an {t} noch unklar? Markiere es rot."],
+3:["Erkläre {t} in drei Sätzen, so dass es ein Kind versteht.","Welcher Teil von {t} fällt dir am schwersten zu erklären?","Welches Beispiel erklärt {t} am besten?","Warum ist {t} wichtig? Erkläre es ohne Fachbegriffe.","Welche Frage würde eine neugierige Person zu {t} stellen?"],
+4:["Schreibe drei Karteikarten-Fragen zu {t}.","Wie lautet eine Definition von {t} in einem Satz? (Rückseite)","Welche kleine Skizze gehört auf die Rückseite einer Karte zu {t}?","Welche zwei Begriffe zu {t} verwechselst du leicht? Mache dazu eine Karte."],
+5:["Schreibe {t} in die Mitte. Welche drei bis vier Hauptäste fallen dir ein?","Welche Farbe bekommt welcher Ast bei {t}?","Welche Verbindung zwischen zwei Ästen zu {t} gibt es?","Welches Symbol oder Bild passt zu {t}?"],
+6:["An welchen fünf Orten in deiner Wohnung legst du die Begriffe zu {t} ab?","Welches verrückte Bild passt zum ersten Begriff von {t}?","Gehe den Weg in Gedanken ab: Welche Begriffe zu {t} findest du?","Welcher Begriff zu {t} lässt sich schwer an einen Ort hängen? Warum?"],
+7:["Nenne die Begriffe zu {t} in der richtigen Reihenfolge. Welche Anfangsbuchstaben ergeben sich?","Baue aus den Anfangsbuchstaben zu {t} einen witzigen Satz.","Gibt es einen Reim, der bei {t} hilft?","Sage deinen Merksatz zu {t} dreimal laut auf."],
+8:["Stelle fünf Minuten einen Timer und schreibe alles zu {t} auf.","Welche Lücken siehst du in deinem Text zu {t}? Fülle sie mit anderer Farbe.","Wähle den Teil von {t}, der am meisten gefehlt hat, und schreibe ihn morgen noch einmal auf."],
+9:["Worin unterscheiden sich {a} und {b}?","Was haben {a} und {b} gemeinsam?","Welches Beispiel passt zu {a}, welches zu {b}?","Wie könnte {a} eine Frage zu {b} beantworten?"]};
+function toolHtml(i){
+ if(i===0)return "<div class='tool'><h3>Timer</h3><div class='tm' id='tm'></div><p class='sub' id='tl'></p><div style='text-align:center'><button class='btn' id='tgo' type='button'>Start</button><button class='btn alt' id='trs' type='button'>Zurücksetzen</button></div><p class='note'>25 Minuten Fokus, 5 Minuten Pause, nach vier Runden 15 Minuten. Lass die Seite geöffnet, damit der Timer weiterläuft.</p></div>";
+ var ph=i===9?"z. B. Photosynthese, Zellatmung":"z. B. Photosynthese";
+ return "<div class='tool'><h3>Mit deinem Thema üben</h3><input id='qin' placeholder='"+ph+"' aria-label='Dein Thema'><button class='btn' id='qgo' type='button'>"+(i===2?"Termine berechnen":"Fragen erstellen")+"</button><ol id='qout'></ol><p class='note'>"+(i===9?"Schreibe zwei Themen, getrennt durch ein Komma. ":"")+"Die Fragen sind Vorlagen, in die dein Thema eingesetzt wird. Sie prüfen nicht, ob deine Antwort stimmt. Vergleiche mit deinen Unterlagen.</p></div>"}
+function bindTool(i){
+ if(i===0){
+  document.getElementById("tgo").addEventListener("click",function(){T.run=!T.run;if(T.run)T.id=setInterval(ttick,1000);else clearInterval(T.id);tdraw()});
+  document.getElementById("trs").addEventListener("click",function(){clearInterval(T.id);T={mode:"work",left:1500,run:false,rounds:0,id:null};tdraw()});
+  tdraw();return}
+ var out=document.getElementById("qout"),inp=document.getElementById("qin");
+ function add(t){var li=document.createElement("li");li.textContent=t;out.appendChild(li)}
+ function go(){
+  out.innerHTML="";var t=inp.value.trim();
+  if(!t){add("Schreibe zuerst ein Thema hin.");return}
+  if(i===2){[1,3,7].forEach(function(d){var x=new Date();x.setDate(x.getDate()+d);
+   add("Wiederhole "+t+" am "+x.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"})+". Zuerst aus dem Kopf abrufen, dann prüfen.")});return}
+  var a=t,b="";
+  if(i===9){var p=t.split(",");if(p.length<2||!p[1].trim()){add("Für Interleaving brauchst du zwei Themen, getrennt durch ein Komma.");return}a=p[0].trim();b=p[1].trim()}
+  Q[i].slice().sort(function(){return Math.random()-.5}).slice(0,4).forEach(function(q){add(q.split("{t}").join(t).split("{a}").join(a).split("{b}").join(b))})}
+ document.getElementById("qgo").addEventListener("click",go);
+ inp.addEventListener("keydown",function(e){if(e.key==="Enter")go()})}
+</script>
+</body>
+</html>
